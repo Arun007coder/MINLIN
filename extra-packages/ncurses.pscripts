@@ -1,0 +1,49 @@
+#!/bin/bash
+
+NCURSES_VERSION=6.3
+
+if ls $SRC/ncurses-$NCURSES_VERSION.tar.gz >/dev/null 2>&1; then
+    echo "Using cached ncurses-$NCURSES_VERSION.tar.gz"
+else
+    wget -c $SRC/ncurses-$NCURSES_VERSION.tar.gz https://ftp.gnu.org/pub/gnu/ncurses/ncurses-$NCURSES_VERSION.tar.gz
+fi
+
+cd $SRC || exit 1
+
+if ls "$SRC"/ncurses-"$NCURSES_VERSION" 1> /dev/null 2>&1; then
+    echo "ncurses-$NCURSES_VERSION already extracted"
+else
+    tar -xzf ncurses-$NCURSES_VERSION.tar.gz
+fi
+
+if ls $INS/NCURSES >/dev/null >&1; then
+    echo "ncurses-$NCURSES_VERSION already installed"
+else
+    cd $SRC/ncurses-"$NCURSES_VERSION" || exit 1
+    sed -i s/mawk// configure
+    mkdir build
+    pushd build || exit 1
+    ../configure --prefix="$INITRD"/usr
+    make -C include
+    make -C progs tic
+    popd || exit 1
+
+    ./configure --prefix=/usr                \
+            --host=$TARGET              \
+            --mandir=/usr/share/man      \
+            --with-manpage-format=normal \
+            --with-shared                \
+            --without-debug              \
+            --without-ada                \
+            --without-normal             \
+            --disable-stripping          \
+            --enable-widec
+
+    make
+    make DESTDIR=$INITRD TIC_PATH=$(pwd)/build/progs/tic install
+    echo "INPUT(-lncursesw)" > $INITRD/usr/lib/libncurses.so
+    ln -s $INITRD/usr/lib/libncursesw.so.6 $INITRD/usr/lib/libtinfo.so.5
+    touch $INS/NCURSES
+    echo ncurses builded
+    sleep 10
+fi

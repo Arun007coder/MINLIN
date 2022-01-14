@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# bash
+
+cd "$SRC" || exit 1
+
+if ls "$SRC"/bash-"$BASH_VERSION".tar.gz 1> /dev/null 2>&1; then
+    echo "Bash source already downloaded"
+else
+    echo "Downloading Bash source"
+    wget https://ftp.gnu.org/gnu/bash/bash-"$BASH_VERSION".tar.gz 
+fi
+
+if ls "$SRC"/bash-"$BASH_VERSION" 1> /dev/null 2>&1; then
+    echo "Bash source already extracted"
+else
+    echo "Extracting Bash source"
+    tar -xzf bash-"$BASH_VERSION".tar.gz
+fi
+
+cd bash-"$BASH_VERSION" || exit
+
+if ls "$INS"/BASH 1> /dev/null 2>&1; then
+    echo "Bash already compiled"
+else
+    ./configure --prefix="$INITRD"/usr                     \
+    --bindir="$INITRD"/bin                     \
+    --htmldir="$INITRD"/usr/share/doc/bash-4.2 \
+    --without-bash-malloc             \
+    --with-installed-readline
+
+    make && \
+    make install
+    touch "$INS"/BASH
+fi
+
+cd ..

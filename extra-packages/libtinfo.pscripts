@@ -1,0 +1,26 @@
+#!/bin/bash
+
+#libtinfo
+
+if ls "$SRC"/libtinfo.deb 1> /dev/null 2>&1; then
+    echo "libtinfo already downloaded"
+else
+    echo "Downloading libtinfo"
+    apt download libtinfo6
+    mv libtinfo6_*.deb "$SRC"/libtinfo.deb
+fi
+
+if ls "$SRC"/libtinfo 1> /dev/null 2>&1; then
+    echo "libtinfo already extracted"
+else
+    echo "Extracting libtinfo"
+    dpkg -x "$SRC"/libtinfo.deb "$SRC"/libtinfo
+fi
+
+if ls "$INS"/libtinfo 1> /dev/null 2>&1; then
+    echo "libtinfo already installed"
+else
+    echo "Installing libtinfo"
+    cp -r "$SRC"/libtinfo/usr/* "$INITRD"/
+    touch "$INS"/libtinfo
+fi
