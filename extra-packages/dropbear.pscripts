@@ -1,0 +1,39 @@
+#!/bin/bash
+
+DROPBEAR_VERSION=2020.81
+export INITRD SRC INS EXTRA
+
+cd $SRC || exit 1
+if ls "$SRC"/dropbear-"$DROPBEAR_VERSION".tar.bz2 1> /dev/null 2>&1; then
+    echo "dropbear already downloaded"
+else
+    echo "Downloading dropbear"
+    wget http://sources.buildroot.net/dropbear/dropbear-"$DROPBEAR_VERSION".tar.bz2
+fi
+
+if ls "$SRC"/dropbear-"$DROPBEAR_VERSION" 1> /dev/null 2>&1; then
+    echo "dropbear already extracted"
+else
+    echo "Extracting dropbear"
+    tar -xjf dropbear-"$DROPBEAR_VERSION".tar.bz2
+fi
+
+if ls "$INS"/DROPBEAR 1> /dev/null 2>&1; then
+    echo "dropbear already installed"
+else
+    cd dropbear-"$DROPBEAR_VERSION" || exit 1
+    echo "Installing dropbear"
+    CC="gcc -Os" ./configure --prefix=/usr
+    make MULTI=1 PROGRAMS="dropbear dbclient dropbearkey dropbearconvert scp"
+    make MULTI=1 PROGRAMS="dropbear dbclient dropbearkey dropbearconvert scp" DESTDIR=${INITRD}/ install
+    install -dv ${INITRD}/etc/dropbear
+
+    ln -svf /usr/bin/dropbearmulti ${INITRD}/usr/sbin/dropbear
+    ln -svf /usr/bin/dropbearmulti ${INITRD}/usr/bin/dbclient
+    ln -svf /usr/bin/dropbearmulti ${INITRD}/usr/bin/dropbearkey
+    ln -svf /usr/bin/dropbearmulti ${INITRD}/usr/bin/dropbearconvert
+    ln -svf /usr/bin/dropbearmulti ${INITRD}/usr/bin/scp
+    ln -svf /usr/bin/dropbearmulti ${INITRD}/usr/bin/ssh
+    touch "$INS"/DROPBEAR
+    cd ..
+fi

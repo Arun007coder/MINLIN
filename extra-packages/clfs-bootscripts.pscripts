@@ -1,0 +1,43 @@
+#!/bin/bash
+
+BOOTSCRIPTS_VERSION=1.0-pre5
+export INITRD
+export SRC
+export INS
+export EXTRA
+
+cd $SRC || exit 1
+if ls "$SRC"/clfs-embedded-bootscripts-"$BOOTSCRIPTS_VERSION".tar.bz2 1> /dev/null 2>&1; then
+    echo "clfs-bootscripts already downloaded"
+else
+    echo "Downloading clfs-bootscripts"
+    wget http://ftp.osuosl.org/pub/clfs/conglomeration/clfs-embedded-bootscripts/clfs-embedded-bootscripts-"$BOOTSCRIPTS_VERSION".tar.bz2
+fi
+
+if ls "$SRC"/clfs-embedded-bootscripts-"$BOOTSCRIPTS_VERSION" 1> /dev/null 2>&1; then
+    echo "clfs-bootscripts already extracted"
+else
+    echo "Extracting clfs-bootscripts"
+    tar -xjf "$SRC"/clfs-embedded-bootscripts-"$BOOTSCRIPTS_VERSION".tar.bz2
+fi
+
+if ls "$INS"/clfs-bootscripts 1> /dev/null 2>&1; then
+    echo "clfs-bootscripts already installed"
+else
+    echo "Installing clfs-bootscripts"
+    cd "$SRC"/clfs-embedded-bootscripts-"$BOOTSCRIPTS_VERSION" || exit 1
+    if ls "$INS"/patch/clfs-bootscripts;
+    then
+        echo "clfs-bootscripts patches already applied"
+    else
+        patch Makefile -l -i "$EXTRA"/clfs-bootscripts/Makefile.patch
+        touch "$INS"/patch/clfs-bootscripts
+    fi
+    make DESTDIR=${INITRD}/ install-bootscripts
+    mkdir -p "$INITRD"/etc/init.d
+    ln -sv ${INITRD}/etc/rc.d/startup ${INITRD}/etc/init.d/rcS
+    make DESTDIR=${INITRD}/ install-dropbear
+    sed -i '76i\ldconfig' ${INITRD}/etc/rc.d/startup
+    sed -i '77i\udhcpc' ${INITRD}/etc/rc.d/startup
+    touch "$INS"/clfs-bootscripts
+fi

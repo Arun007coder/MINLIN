@@ -1,0 +1,29 @@
+#!/bin/bash
+
+HTOP_VERSION=3.1.2
+
+cd $SRC || exit 1
+
+if ls htop-$HTOP_VERSION.tar.gz > /dev/null 2>&1; then
+    echo "htop-$HTOP_VERSION.tar.gz already exists, skipping download..."
+else
+    echo "Downloading htop-$HTOP_VERSION.tar.gz"
+    wget https://github.com/htop-dev/htop/releases/download/"$HTOP_VERSION"/htop-"$HTOP_VERSION".tar.xz
+fi
+
+if ls htop-"$HTOP_VERSION" > /dev/null 2>&1; then
+    echo "htop-$HTOP_VERSION already exists, skipping extraction..."
+else
+    echo "Extracting htop-$HTOP_VERSION.tar.xz"
+    tar -xf htop-"$HTOP_VERSION".tar.xz
+fi
+
+if ls "$INS"/HTOP > /dev/null 2>&1; then
+    echo "$INS/HTOP already exists, skipping installation..."
+else
+    echo "Installing htop-$HTOP_VERSION to $INS/HTOP"
+    cd htop-"$HTOP_VERSION" || exit 1
+    ./configure --prefix="$INITRD"/
+    make
+    make install
+fi

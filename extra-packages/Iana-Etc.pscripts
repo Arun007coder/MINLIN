@@ -1,0 +1,31 @@
+#!/bin/bash
+
+IANA_ETC_VERSION=2.30
+
+cd $SRC || exit 1
+
+if ls "$SRC"/iana-etc-"$IANA_ETC_VERSION".tar.bz2 1> /dev/null 2>&1; then
+    echo "iana-etc already downloaded"
+else
+    echo "Downloading iana-etc"
+    wget http://ftp.osuosl.org/pub/clfs/conglomeration/iana-etc/iana-etc-"$IANA_ETC_VERSION".tar.bz2
+fi
+
+if ls "$SRC"/iana-etc-"$IANA_ETC_VERSION" 1> /dev/null 2>&1; then
+    echo "iana-etc already extracted"
+else
+    echo "Extracting iana-etc"
+    tar -xjf iana-etc-"$IANA_ETC_VERSION".tar.bz2
+fi
+
+if ls "$INS"/iana-etc 1> /dev/null 2>&1; then
+    echo "iana-etc already installed"
+else
+    echo "Installing iana-etc"
+    cd iana-etc-"$IANA_ETC_VERSION" || exit 1
+    patch -Np1 -i "$EXTRA"/Iana-Etc/Makefile.patch
+    make get
+    make STRIP=yes
+    make DESTDIR=${INITRD} install
+    touch "$INS"/iana-etc
+fi

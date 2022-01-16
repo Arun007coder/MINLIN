@@ -1,0 +1,38 @@
+#!/bin/bash
+
+cd $SRC || exit 1
+
+if ls $SRC/libcrypt.deb > /dev/null 2>&1; then
+    echo "libxcrypt already downloaded."
+else
+    echo "Downloading libxcrypt..."
+    apt download libcrypt1
+    mv $SRC/libcrypt1*.deb $SRC/libcrypt.deb
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to download libxcrypt."
+        exit 1
+    fi
+fi
+
+if ls $SRC/libcrypt > /dev/null 2>&1; then
+    echo "libcrypt already extracted."
+else
+    echo "Extracting libcrypt..."
+    dpkg -x $SRC/libcrypt.deb $SRC/libcrypt
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to extract libcrypt."
+        exit 1
+    fi
+fi
+
+if ls "$INS"/LIBCRYPT > /dev/null 2>&1; then
+    echo "libcrypt already installed."
+else
+    echo "Installing libcrypt..."
+    cp -r $SRC/libcrypt/* "$INITRD"/
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to install libcrypt."
+        exit 1
+    fi
+    touch "$INS"/LIBCRYPT
+fi

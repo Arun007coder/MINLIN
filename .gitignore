@@ -1,0 +1,11 @@
+*
+
+!build.sh
+!extra-packages
+!extra-packages/*
+!README.md
+!packages.txt
+!.gitignore
+!ext
+!ext/*
+!ext/*/*

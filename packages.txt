@@ -1,3 +1,10 @@
 ncurses
+htop
 libtinfo
 bash
+clfs-bootscripts
+zlib
+libxcrypt
+dropbear
+Iana-Etc
+netplug

@@ -1,0 +1,44 @@
+#!/bin/bash
+
+NETPLUG_VERSION=1.2.9.2
+
+cd $SRC || exit 1
+
+if ls "$SRC"/netplug-"$NETPLUG_VERSION".tar.bz2 1> /dev/null 2>&1; then
+    echo "netplug already downloaded"
+else
+    echo "Downloading netplug"
+    wget http://ftp.osuosl.org/pub/clfs/conglomeration/netplug/netplug-"$NETPLUG_VERSION".tar.bz2
+fi
+
+if ls "$EXTRA"/netplug/netplug.patch 1> /dev/null 2>&1; then
+    echo "netplug patches already applied"
+else
+    echo "Applying netplug patches"
+    wget http://ftp.osuosl.org/pub/clfs/conglomeration/netplug/netplug-"$NETPLUG_VERSION"-fixes-1.patch
+    mkdir -p "$EXTRA"/netplug
+    mv netplug-"$NETPLUG_VERSION"-fixes-1.patch "$EXTRA"/netplug/netplug.patch
+fi
+
+if ls "$SRC"/netplug-"$NETPLUG_VERSION" 1> /dev/null 2>&1; then
+    echo "netplug already extracted"
+else
+    echo "Extracting netplug"
+    tar -xjf netplug-"$NETPLUG_VERSION".tar.bz2
+fi
+
+if ls "$INS"/netplug 1> /dev/null 2>&1; then
+    echo "netplug already installed"
+else
+    echo "Installing netplug"
+    cd netplug-"$NETPLUG_VERSION" || exit 1
+    if ls "$INS"/patch/netplug;
+    then
+        echo "Netplug patches already applied"
+    else
+        patch -Np1 -i "$EXTRA"/netplug/netplug.patch
+        touch "$INS"/patch/netplug
+    fi
+    make && make DESTDIR=${INITRD}/ install
+    touch "$INS"/netplug
+fi

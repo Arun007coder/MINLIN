@@ -1,0 +1,30 @@
+#!/bin/bash
+
+ZLIB_VERSION=1.2.11
+
+cd $SRC || exit 1
+
+if ls "$SRC"/zlib-"$ZLIB_VERSION".tar.xz 1> /dev/null 2>&1; then
+    echo "zlib already downloaded"
+else
+    echo "Downloading zlib"
+    wget https://zlib.net/zlib-"$ZLIB_VERSION".tar.xz
+fi
+
+if ls "$SRC"/zlib-"$ZLIB_VERSION" 1> /dev/null 2>&1; then
+    echo "zlib already extracted"
+else
+    echo "Extracting zlib"
+    tar -xJf zlib-"$ZLIB_VERSION".tar.xz
+fi
+
+if ls "$INS"/zlib 1> /dev/null 2>&1; then
+    echo "zlib already installed"
+else
+    echo "Installing zlib"
+    cd zlib-"$ZLIB_VERSION" || exit 1
+    sed -i 's/-O3/-Os/g' configure
+    ./configure --prefix=/usr --shared
+    make && make DESTDIR=${INITRD}/ install
+    touch "$INS"/zlib
+fi
